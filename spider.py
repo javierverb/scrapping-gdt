@@ -197,7 +197,7 @@ class ScrapperTitanWars(object):
 
 
 spider = ScrapperTitanWars()
-spider.sign_in("javierverb", "iseedeadpe12")
+spider.sign_in("javierverb", "")
 
 for page in xrange(80):
     spider.hydrate_ranking(page)
