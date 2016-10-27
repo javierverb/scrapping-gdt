@@ -22,29 +22,6 @@ class Stats(object):
         self.mana = ""
 
 
-class Image(object):
-    """docstring for Image"""
-
-    def __init__(self):
-        super(Image, self).__init__()
-        self.filename = ""
-
-    def write_to_file(self, browser, content_html):
-        image_tags = content_html.findAll('img')
-        for image in image_tags:
-            filename = image['src'].lstrip('http://')
-            filename = os.path.join(dir, filename.replace('/', '_'))
-            self.filename = filename
-            data = browser.open(image['src']).read()
-            browser.back()
-            save = open(filename, 'wb')
-            save.write(data)
-            save.close()
-
-    def remove(self):
-        os.remove(self.filename)
-
-
 class Player(object):
     """docstring for Player"""
 
@@ -153,6 +130,8 @@ class ScrapperTitanWars(object):
             name = div.find('a', href=True).string if div.find('a') else None
             href = div.find('a', href=True)['href'] if div.find('a') else None
 
+            if name == "Guerrero":
+                continue
             player_id = __get_player_id(href)
 
             p = Player()
@@ -207,16 +186,22 @@ class ScrapperTitanWars(object):
             self.browser.open(self._url_root + p.url)
             resp = self.browser.response().read()
             content_html = BeautifulSoup(resp, 'html.parser')
-            first_link = content_html.find_all('div', {'class': 'float-left'})
-            import ipdb
-            ipdb.set_trace()
-            # TODO: seguir más tarde
+            link_container = content_html.find_all('div', {'class': 'float-left'})[0]
+            link = link_container.find('a')['href']
+            self.browser.open(self._url_root + link)
+            resp = self.browser.response().read()
+            content_html = BeautifulSoup(resp, 'html.parser')
+            img_container = content_html.find_all('div', {'class': 'block_zero center'})[1]
+            img_src = img_container.find('img')['src']
+            p.image = img_src
 
 
 spider = ScrapperTitanWars()
-spider.sign_in("javierverb", "yourpasswordhere")
-spider.hydrate_ranking(1)
+spider.sign_in("javierverb", "iseedeadpe12")
+
+for page in xrange(80):
+    spider.hydrate_ranking(page)
+spider.hydrate_player_stats()
 spider.hydrate_player_image()
-# spider.hydrate_player_stats()
-# f = open('d', 'w+')
-# spider.dump_all_data(f)
+f = open('d', 'w+')
+spider.dump_all_data(f)
